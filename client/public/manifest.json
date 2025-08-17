@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "All Ears",
+  "version": "1.0",
+  "permissions": ["tabCapture", "sidePanel", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "All Ears"
+  }
+}
