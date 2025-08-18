@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "All Ears",
   "version": "1.0",
-  "permissions": ["tabCapture", "sidePanel", "storage"],
+  "permissions": ["storage", "sidePanel", "activeTab", "tabCapture"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
@@ -11,6 +11,6 @@
     "default_path": "sidepanel.html"
   },
   "action": {
-    "default_title": "All Ears"
+    "default_title": "Click to open panel"
   }
 }

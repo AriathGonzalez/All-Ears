@@ -19,18 +19,18 @@ app.listen(port, () => {
 // Websocket server for audio streaming
 const wss = new WebSocketServer({ port: process.env.WS_PORT || 8080 });
 
-wss.on("connection", (ws) => {
+wss.on("connection", (socket) => {
   console.log("Client connected");
 
-  ws.on("message", (msg) => {
-    console.log("Received audio chunk: ", msg.byteLength);
-    // TODO: Forward this to GOOGLE API
-    // TODO: Send transcript back: ws.send("partial transcript...")
+  socket.on("message", async (data) => {
+    console.log("Received audio chunk: ", data.byteLength || data.length);
+
+    const demoTranscript = "test transcript";
+
+    socket.send(JSON.stringify({ transcript: demoTranscript }));
   });
 
-  ws.on("close", () => console.log("Client disconnected"));
-
-  console.log(
-    `WebSocket server running at ws://localhost:${process.env.WS_PORT || 8080}`
-  );
+  socket.on("close", () => {
+    console.log("Client disconnected");
+  });
 });

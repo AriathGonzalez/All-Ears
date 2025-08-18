@@ -4,44 +4,84 @@ import ReactDOM from "react-dom/client";
 function Sidepanel() {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
-
   const streamRef = useRef(null);
   const outputRef = useRef(null);
+  const wssRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
 
-  const toggleRecording = () => {
-    if (!isRecording) {
-      chrome.tabCapture.capture(
-        {
-          audio: true,
-          video: false,
-        },
-        (stream) => {
-          if (chrome.runtime.lastError || !stream) {
-            console.error("Error capturing audio:", chrome.runtime.lastError);
-            return;
-          }
+  function handleWebSocketOpen() {
+    console.log("WebSocket connection established");
 
-          console.log("Captured stream:", stream);
+    mediaRecorderRef.current = new MediaRecorder(streamRef.current, {
+      mimeType: "audio/webm",
+    });
 
-          streamRef.current = stream;
-          outputRef.current = new AudioContext();
-          const source = outputRef.current.createMediaStreamSource(stream);
-          source.connect(outputRef.current.destination);
+    console.log(mediaRecorderRef.current);
+    mediaRecorderRef.current.ondataavailable = handleDataAvailable;
+    mediaRecorderRef.current.start(1000);
+  }
 
-          const analyzer = outputRef.current.createAnalyser();
-          source.connect(analyzer);
-
-          console.log("Audio capture started");
-        }
-      );
-    } else {
-      stopCapture();
+  function handleDataAvailable(event) {
+    console.log("current: ", wssRef.current?.readyState);
+    console.log("data: ", event.data);
+    if (event.data.size > 0 && wssRef.current?.readyState === WebSocket.OPEN) {
+      console.log("Sending audio chunk to WebSocket server");
+      event.data.arrayBuffer().then((buffer) => {
+        wssRef.current.send(buffer);
+      });
     }
+  }
 
-    setIsRecording(!isRecording);
+  function handleWebSocketMessage(event) {
+    const data = JSON.parse(event.data);
+
+    if (data.transcript) {
+      setTranscript((prev) => prev + "\n" + data.transcript);
+    }
+  }
+
+  function handleWebSocketClose() {
+    console.log("WebSocket connection closed");
+  }
+
+  const startCapture = () => {
+    chrome.tabCapture.capture(
+      {
+        audio: true,
+        video: false,
+      },
+      (stream) => {
+        if (chrome.runtime.lastError || !stream) {
+          console.error("Error capturing audio:", chrome.runtime.lastError);
+          return;
+        }
+
+        console.log("Captured stream:", stream);
+
+        // Play back audio
+        streamRef.current = stream;
+        outputRef.current = new AudioContext();
+        const source = outputRef.current.createMediaStreamSource(
+          streamRef.current
+        );
+        source.connect(outputRef.current.destination);
+
+        wssRef.current = new WebSocket("ws://localhost:8080");
+
+        wssRef.current.onopen = handleWebSocketOpen;
+        wssRef.current.onmessage = handleWebSocketMessage;
+        wssRef.current.onclose = handleWebSocketClose;
+
+        console.log("Audio capture started");
+      }
+    );
   };
 
   const stopCapture = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current = null;
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -50,7 +90,22 @@ function Sidepanel() {
       outputRef.current.close();
       outputRef.current = null;
     }
+    if (wssRef.current) {
+      wssRef.current.close();
+      wssRef.current = null;
+    }
+
     console.log("Capture stopped.");
+  };
+
+  const toggleRecording = () => {
+    if (!isRecording) {
+      startCapture();
+    } else {
+      stopCapture();
+    }
+
+    setIsRecording(!isRecording);
   };
 
   return (
