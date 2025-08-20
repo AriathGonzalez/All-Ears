@@ -8,6 +8,7 @@ function Sidepanel() {
   const outputRef = useRef(null);
   const wssRef = useRef(null);
   const mediaRecorderRef = useRef(null);
+  const [timer, setTimer] = useState(0);
 
   function handleWebSocketOpen() {
     console.log("WebSocket connection established");
@@ -104,13 +105,29 @@ function Sidepanel() {
     setIsRecording(!isRecording);
   };
 
+  const downloadTranscript = () => {
+    const blob = new Blob([transcript], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "transcript.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div style={{ padding: "1rem", fontFamily: "sans-serif" }}>
+      <h>{timer}</h>
       <button onClick={toggleRecording}>
         {isRecording ? "Stop Recording" : "Start Recording"}
       </button>
       <h3>Live Transcript</h3>
       <pre style={{ whiteSpace: "pre-wrap" }}>{transcript}</pre>
+      <button onClick={() => downloadTranscript()}>Download</button>
     </div>
   );
 }
