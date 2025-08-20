@@ -16,18 +16,14 @@ function Sidepanel() {
       mimeType: "audio/webm",
     });
 
-    console.log(mediaRecorderRef.current);
     mediaRecorderRef.current.ondataavailable = handleDataAvailable;
     mediaRecorderRef.current.start(1000);
   }
 
   function handleDataAvailable(event) {
-    console.log("current: ", wssRef.current?.readyState);
-    console.log("data: ", event.data);
     if (event.data.size > 0 && wssRef.current?.readyState === WebSocket.OPEN) {
-      console.log("Sending audio chunk to WebSocket server");
       event.data.arrayBuffer().then((buffer) => {
-        wssRef.current.send(buffer);
+        wssRef.current.send(new Uint8Array(buffer));
       });
     }
   }
