@@ -3,12 +3,14 @@ import ReactDOM from "react-dom/client";
 
 function Sidepanel() {
   const [isRecording, setIsRecording] = useState(false);
-  const [transcript, setTranscript] = useState("");
+  const [transcript, setTranscript] = useState("meow");
   const streamRef = useRef(null);
   const outputRef = useRef(null);
   const wssRef = useRef(null);
   const mediaRecorderRef = useRef(null);
-  const [timer, setTimer] = useState(0);
+  const intervalRef = useRef(null);
+  const [minutes, setMinutes] = useState(0);
+  const [seconds, setSeconds] = useState(0);
 
   function handleWebSocketOpen() {
     console.log("WebSocket connection established");
@@ -41,6 +43,24 @@ function Sidepanel() {
     console.log("WebSocket connection closed");
   }
 
+  const startCounter = () => {
+    intervalRef.current = setInterval(() => {
+      setSeconds((prev) => {
+        if (prev + 1 === 60) {
+          setMinutes((m) => m + 1);
+          return 0;
+        }
+        return prev + 1;
+      });
+    }, 1000);
+  };
+
+  const stopCounter = () => {
+    clearInterval(intervalRef.current);
+    setSeconds(0);
+    setMinutes(0);
+  };
+
   const startCapture = () => {
     chrome.tabCapture.capture(
       {
@@ -53,6 +73,7 @@ function Sidepanel() {
           return;
         }
 
+        startCounter();
         console.log("Captured stream:", stream);
 
         // Play back audio
@@ -75,6 +96,8 @@ function Sidepanel() {
   };
 
   const stopCapture = () => {
+    stopCounter();
+
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current = null;
@@ -119,9 +142,16 @@ function Sidepanel() {
     URL.revokeObjectURL(url);
   };
 
+  const formattedMinutes = String(minutes).padStart(2, "0");
+  const formattedSeconds = String(seconds).padStart(2, "0");
+
   return (
     <div style={{ padding: "1rem", fontFamily: "sans-serif" }}>
-      <h>{timer}</h>
+      <div style={{ display: "flex" }} className="timer">
+        <p id="min">{formattedMinutes}</p>
+        <p>:</p>
+        <p id="sec">{formattedSeconds}</p>
+      </div>
       <button onClick={toggleRecording}>
         {isRecording ? "Stop Recording" : "Start Recording"}
       </button>
