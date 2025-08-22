@@ -9,7 +9,7 @@ const CAPTURE_INTERVAL = 30000;
 function Sidepanel() {
   const [isRecording, setIsRecording] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  const [transcript, setTranscript] = useState("meow");
+  const [transcript, setTranscript] = useState("");
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const [showToast, setShowToast] = useState(false);
@@ -110,7 +110,6 @@ function Sidepanel() {
 
   const stopCapture = () => {
     stopCounter();
-    setIsConnected(false);
 
     mediaRecorderRef.current?.stop();
     mediaRecorderRef.current = null;
