@@ -9,6 +9,7 @@ Includes a session timer, connection status indicators, and transcript download 
 
 - **Sidepanel**
   - ![Sidepanel Demo](./assets/live-transcript.gif)
+    _Original content © Trash Taste Podcast #269. Transcript used for educational/demo purposes only._
 
 ## ✨ Features
 
