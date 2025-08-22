@@ -8,11 +8,7 @@ Includes a session timer, connection status indicators, and transcript download 
 ## 📄 Pages
 
 - **Sidepanel**
-  - Main interface for controlling recording and viewing live transcripts.
-- **Background** _(handled implicitly via Chrome APIs)_
-  - Manages tab audio capture.
-
----
+  - ![Sidepanel Demo](./assets/live-transcript.gif)
 
 ## ✨ Features
 
